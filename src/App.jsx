@@ -1,121 +1,134 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
 import './App.css'
 
+const initialFormState = {
+  firstName: '',
+  lastName: '',
+  email: '',
+  password: '',
+}
+
 function App() {
-  const [count, setCount] = useState(0)
+  const [form, setForm] = useState(initialFormState)
+  const [status, setStatus] = useState({
+    tone: 'idle',
+    message: 'Complete the form below to prepare a registration request.',
+  })
+
+  const handleChange = (event) => {
+    const { name, value } = event.target
+
+    setForm((currentForm) => ({
+      ...currentForm,
+      [name]: value,
+    }))
+  }
+
+  const handleSubmit = (event) => {
+    event.preventDefault()
+
+    setStatus({
+      tone: 'success',
+      message:
+        'Registration details captured locally. Backend submission will be connected in the next step.',
+    })
+  }
+
+  const isSubmitDisabled = Object.values(form).some((value) => value.trim() === '')
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
+    <main className="registration-page">
+      <section className="registration-shell" aria-labelledby="registration-title">
+        <div className="registration-copy">
+          <span className="eyebrow">User registration</span>
+          <h1 id="registration-title">Create an account</h1>
+          <p className="lead">
+            A focused registration flow ready for backend integration. The form is
+            keyboard-friendly, responsive, and keeps its own local state.
           </p>
         </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
 
-      <div className="ticks"></div>
+        <div className="registration-card">
+          <form className="registration-form" onSubmit={handleSubmit} noValidate>
+            <div className="form-grid">
+              <div className="field">
+                <label htmlFor="firstName">First name</label>
+                <input
+                  id="firstName"
+                  name="firstName"
+                  type="text"
+                  autoComplete="given-name"
+                  value={form.firstName}
+                  onChange={handleChange}
+                  placeholder="Alex"
+                  required
+                />
+              </div>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
+              <div className="field">
+                <label htmlFor="lastName">Last name</label>
+                <input
+                  id="lastName"
+                  name="lastName"
+                  type="text"
+                  autoComplete="family-name"
+                  value={form.lastName}
+                  onChange={handleChange}
+                  placeholder="Morgan"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="field">
+              <label htmlFor="email">Email address</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                value={form.email}
+                onChange={handleChange}
+                placeholder="alex@example.com"
+                required
+              />
+            </div>
+
+            <div className="field">
+              <label htmlFor="password">Password</label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="new-password"
+                value={form.password}
+                onChange={handleChange}
+                placeholder="Create a secure password"
+                required
+              />
+            </div>
+
+            <div className="form-footer">
+              <button type="submit" disabled={isSubmitDisabled}>
+                Prepare registration
+              </button>
+              <p className="supporting-copy">
+                No network call happens yet. This task establishes the UI shell and
+                local interaction state.
+              </p>
+            </div>
+
+            <div
+              className={`status status--${status.tone}`}
+              role="status"
+              aria-live="polite"
+            >
+              {status.message}
+            </div>
+          </form>
         </div>
       </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+    </main>
   )
 }
 
