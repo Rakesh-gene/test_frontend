@@ -14,3 +14,17 @@ The React Compiler is not enabled on this template because of its impact on dev 
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+## Smoke Validation
+
+This repository does not currently include a UI test harness, so the registration page is validated with build/lint checks and manual smoke review.
+
+- `npm run lint`
+- `npm run build`
+
+Manual checks to run in the browser:
+
+- Load the registration page and confirm the layout renders cleanly on a narrow mobile viewport and a wide desktop viewport.
+- Submit valid data and confirm the loading state and success feedback appear.
+- Submit missing or invalid values and confirm inline field errors appear.
+- Submit a duplicate email against the backend and confirm the conflict message is shown without breaking the form.
