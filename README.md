@@ -28,3 +28,13 @@ Manual checks to run in the browser:
 - Submit valid data and confirm the loading state and success feedback appear.
 - Submit missing or invalid values and confirm inline field errors appear.
 - Submit a duplicate email against the backend and confirm the conflict message is shown without breaking the form.
+
+## Registration API Contract
+
+The frontend is wired to `POST /api/user/register` and expects the following behavior:
+
+- `200 OK` with JSON containing at least `id`, `email`, and `createdAtUtc` for the success state.
+- `400 Bad Request` with a problem-details payload whose `errors` keys may include `firstName`, `lastName`, `email`, and `password`.
+- `409 Conflict` with a problem-details payload describing the duplicate-email case.
+
+This checkout does not contain backend source files, so any API contract change must be made in the backend repository and then revalidated from the UI.
