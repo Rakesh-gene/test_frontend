@@ -69,7 +69,7 @@ function extractProblemPayload(problem) {
   return { title, detail, fieldErrors }
 }
 
-function createRegistrationError(response, body) {
+export function createRegistrationError(response, body) {
   const { title, detail, fieldErrors } = extractProblemPayload(body)
   const status = response.status
 
