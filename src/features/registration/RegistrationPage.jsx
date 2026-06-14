@@ -393,8 +393,8 @@ function RegistrationPage() {
                 {submission.status === 'success' && createdUser ? (
                   <Stack spacing={0.75}>
                     <Typography variant="body2">{message.message}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Created at {new Date(createdUser.createdAtUtc).toLocaleString()}
+                    <Typography component="time" dateTime={createdUser.createdAtUtc} variant="body2" color="text.secondary">
+                      Created at UTC {new Date(createdUser.createdAtUtc).toISOString()}
                     </Typography>
                   </Stack>
                 ) : (
