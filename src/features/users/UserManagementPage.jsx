@@ -12,7 +12,7 @@ import {
 } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import { getUsers, updateUser } from '../../api/usersApi.js'
-import { FormCard, FormAlert } from '../../components/common/index.js'
+import { FormAlert, FormCard, FormTextField } from '../../components/common/index.js'
 import UserEditDialog from './UserEditDialog.jsx'
 
 const initialPaginationModel = {
@@ -68,62 +68,84 @@ function UserManagementPage() {
   const [editOpen, setEditOpen] = useState(false)
   const [refreshToken, setRefreshToken] = useState(0)
   const [banner, setBanner] = useState(null)
+  const [searchTerm, setSearchTerm] = useState('')
 
   const currentPageLabel = useMemo(() => {
     const start = rowCount === 0 ? 0 : paginationModel.page * paginationModel.pageSize + 1
     const end = Math.min((paginationModel.page + 1) * paginationModel.pageSize, rowCount)
+    const normalizedSearchTerm = searchTerm.trim()
 
-    return rowCount === 0 ? 'No users loaded yet' : `Showing ${start}-${end} of ${rowCount}`
-  }, [paginationModel.page, paginationModel.pageSize, rowCount])
+    if (rowCount === 0) {
+      return normalizedSearchTerm
+        ? `No users match "${normalizedSearchTerm}"`
+        : 'No users loaded yet'
+    }
+
+    return normalizedSearchTerm
+      ? `Showing ${start}-${end} of ${rowCount} matching "${normalizedSearchTerm}"`
+      : `Showing ${start}-${end} of ${rowCount}`
+  }, [paginationModel.page, paginationModel.pageSize, rowCount, searchTerm])
 
   useEffect(() => {
     let active = true
+    const timeoutId = window.setTimeout(() => {
+      async function loadPage() {
+        setIsLoading(true)
+        setLoadError('')
 
-    async function loadPage() {
-      setIsLoading(true)
-      setLoadError('')
+        try {
+          const result = await getUsers({
+            page: paginationModel.page + 1,
+            pageSize: paginationModel.pageSize,
+            search: searchTerm,
+          })
 
-      try {
-        const result = await getUsers({
-          page: paginationModel.page + 1,
-          pageSize: paginationModel.pageSize,
-        })
+          if (!active) {
+            return
+          }
 
-        if (!active) {
-          return
-        }
+          setRows(result.items)
+          setRowCount(result.totalCount)
+          setBanner((current) =>
+            current?.severity === 'success' && current.scope === 'save'
+              ? current
+              : null,
+          )
+        } catch (error) {
+          if (!active) {
+            return
+          }
 
-        setRows(result.items)
-        setRowCount(result.totalCount)
-        setBanner((current) =>
-          current?.severity === 'success' && current.scope === 'save'
-            ? current
-            : null,
-        )
-      } catch (error) {
-        if (!active) {
-          return
-        }
+          const apiError = error && typeof error === 'object' ? error : null
 
-        const apiError = error && typeof error === 'object' ? error : null
-
-        setLoadError(apiError?.detail || apiError?.title || 'Unable to load users right now.')
-      } finally {
-        if (active) {
-          setIsLoading(false)
+          setLoadError(apiError?.detail || apiError?.title || 'Unable to load users right now.')
+        } finally {
+          if (active) {
+            setIsLoading(false)
+          }
         }
       }
-    }
 
-    loadPage()
+      loadPage()
+    }, 250)
 
     return () => {
       active = false
+      window.clearTimeout(timeoutId)
     }
-  }, [paginationModel.page, paginationModel.pageSize, refreshToken])
+  }, [paginationModel.page, paginationModel.pageSize, refreshToken, searchTerm])
 
   const handleRetry = () => {
     setRefreshToken((current) => current + 1)
+  }
+
+  const handleSearchChange = (event) => {
+    const nextSearchTerm = event.target.value
+
+    setSearchTerm(nextSearchTerm)
+    setPaginationModel((current) =>
+      current.page === 0 ? current : { ...current, page: 0 },
+    )
   }
 
   const handleRowClick = (params) => {
@@ -251,6 +273,19 @@ function UserManagementPage() {
           description={currentPageLabel}
           sx={{ overflow: 'hidden' }}
         >
+          <Stack spacing={2} sx={{ mb: 2 }}>
+            <FormTextField
+              label="Search users"
+              name="user-search"
+              value={searchTerm}
+              onChange={handleSearchChange}
+              placeholder="Search by name or email"
+              helperText="Results update from the server and match names or email addresses."
+              inputProps={{ 'data-testid': 'user-search-input' }}
+              sx={{ maxWidth: 420 }}
+            />
+          </Stack>
+
           <Paper
             elevation={0}
             sx={{
