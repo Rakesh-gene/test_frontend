@@ -8,6 +8,7 @@ import {
   Container,
   Paper,
   Stack,
+  TextField,
   Typography,
 } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
@@ -64,6 +65,8 @@ function UserManagementPage() {
   const [rowCount, setRowCount] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
   const [loadError, setLoadError] = useState('')
+  const [searchInput, setSearchInput] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
   const [selectedUser, setSelectedUser] = useState(null)
   const [editOpen, setEditOpen] = useState(false)
   const [refreshToken, setRefreshToken] = useState(0)
@@ -73,8 +76,22 @@ function UserManagementPage() {
     const start = rowCount === 0 ? 0 : paginationModel.page * paginationModel.pageSize + 1
     const end = Math.min((paginationModel.page + 1) * paginationModel.pageSize, rowCount)
 
-    return rowCount === 0 ? 'No users loaded yet' : `Showing ${start}-${end} of ${rowCount}`
-  }, [paginationModel.page, paginationModel.pageSize, rowCount])
+    if (rowCount === 0) {
+      return searchTerm ? `No matches found for "${searchTerm}"` : 'No users loaded yet'
+    }
+
+    return `Showing ${start}-${end} of ${rowCount}`
+  }, [paginationModel.page, paginationModel.pageSize, rowCount, searchTerm])
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setSearchTerm(searchInput.trim())
+    }, 300)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [searchInput])
 
   useEffect(() => {
     let active = true
@@ -87,6 +104,7 @@ function UserManagementPage() {
         const result = await getUsers({
           page: paginationModel.page + 1,
           pageSize: paginationModel.pageSize,
+          search: searchTerm,
         })
 
         if (!active) {
@@ -120,10 +138,19 @@ function UserManagementPage() {
     return () => {
       active = false
     }
-  }, [paginationModel.page, paginationModel.pageSize, refreshToken])
+  }, [paginationModel.page, paginationModel.pageSize, refreshToken, searchTerm])
 
   const handleRetry = () => {
     setRefreshToken((current) => current + 1)
+  }
+
+  const handleSearchChange = (event) => {
+    const { value } = event.target
+
+    setSearchInput(value)
+    setPaginationModel((current) =>
+      current.page === 0 ? current : { ...current, page: 0 },
+    )
   }
 
   const handleRowClick = (params) => {
@@ -251,6 +278,17 @@ function UserManagementPage() {
           description={currentPageLabel}
           sx={{ overflow: 'hidden' }}
         >
+          <TextField
+            label="Search users"
+            value={searchInput}
+            onChange={handleSearchChange}
+            placeholder="First name, last name, or email"
+            helperText="Server-side search matches first name, last name, and email."
+            fullWidth
+            sx={{ mb: 2 }}
+            inputProps={{ 'aria-label': 'Search users' }}
+          />
+
           <Paper
             elevation={0}
             sx={{
@@ -283,6 +321,11 @@ function UserManagementPage() {
                 disableRowSelectionOnClick
                 onRowClick={handleRowClick}
                 getRowId={(row) => row.id ?? row.userId}
+                localeText={{
+                  noRowsLabel: searchTerm
+                    ? `No users match "${searchTerm}"`
+                    : 'No users available yet',
+                }}
                 sx={{
                   border: 0,
                   '& .MuiDataGrid-columnHeaders': {
