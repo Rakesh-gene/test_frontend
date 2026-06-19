@@ -12,7 +12,7 @@ import {
 } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import { getUsers, updateUser } from '../../api/usersApi.js'
-import { FormCard, FormAlert } from '../../components/common/index.js'
+import { FormCard, FormAlert, FormTextField } from '../../components/common/index.js'
 import UserEditDialog from './UserEditDialog.jsx'
 
 const initialPaginationModel = {
@@ -68,6 +68,8 @@ function UserManagementPage() {
   const [editOpen, setEditOpen] = useState(false)
   const [refreshToken, setRefreshToken] = useState(0)
   const [banner, setBanner] = useState(null)
+  const [searchDraft, setSearchDraft] = useState('')
+  const [appliedSearch, setAppliedSearch] = useState('')
 
   const currentPageLabel = useMemo(() => {
     const start = rowCount === 0 ? 0 : paginationModel.page * paginationModel.pageSize + 1
@@ -87,6 +89,7 @@ function UserManagementPage() {
         const result = await getUsers({
           page: paginationModel.page + 1,
           pageSize: paginationModel.pageSize,
+          search: appliedSearch,
         })
 
         if (!active) {
@@ -120,10 +123,28 @@ function UserManagementPage() {
     return () => {
       active = false
     }
-  }, [paginationModel.page, paginationModel.pageSize, refreshToken])
+  }, [appliedSearch, paginationModel.page, paginationModel.pageSize, refreshToken])
 
   const handleRetry = () => {
     setRefreshToken((current) => current + 1)
+  }
+
+  const handleSearchSubmit = (event) => {
+    event.preventDefault()
+    setPaginationModel((current) => ({
+      ...current,
+      page: 0,
+    }))
+    setAppliedSearch(searchDraft.trim())
+  }
+
+  const handleClearSearch = () => {
+    setSearchDraft('')
+    setAppliedSearch('')
+    setPaginationModel((current) => ({
+      ...current,
+      page: 0,
+    }))
   }
 
   const handleRowClick = (params) => {
@@ -200,6 +221,14 @@ function UserManagementPage() {
                 sx={{ fontWeight: 700 }}
               />
               <Chip label="Newest first" variant="outlined" sx={{ fontWeight: 700 }} />
+              {appliedSearch ? (
+                <Chip
+                  label={`Search: ${appliedSearch}`}
+                  variant="outlined"
+                  color="primary"
+                  sx={{ fontWeight: 700 }}
+                />
+              ) : null}
             </Stack>
 
             <Typography variant="h2" component="h1">
@@ -244,6 +273,42 @@ function UserManagementPage() {
             {loadError}
           </Alert>
         ) : null}
+
+        <Paper
+          elevation={0}
+          component="form"
+          onSubmit={handleSearchSubmit}
+          sx={{
+            borderRadius: 3,
+            border: '1px solid rgba(15, 76, 92, 0.12)',
+            p: { xs: 2, md: 2.5 },
+          }}
+        >
+          <Stack
+            direction={{ xs: 'column', md: 'row' }}
+            alignItems={{ xs: 'stretch', md: 'flex-end' }}
+            spacing={2}
+          >
+            <FormTextField
+              label="Search users"
+              name="search"
+              value={searchDraft}
+              onChange={(event) => setSearchDraft(event.target.value)}
+              placeholder="Search by name or email"
+              helperText="Filters by first name, last name, and email."
+              inputProps={{ 'data-testid': 'user-search-input' }}
+              sx={{ maxWidth: 480 }}
+            />
+            <Stack direction="row" spacing={1.5}>
+              <Button type="submit" variant="contained">
+                Search
+              </Button>
+              <Button type="button" variant="text" onClick={handleClearSearch} disabled={!searchDraft && !appliedSearch}>
+                Clear
+              </Button>
+            </Stack>
+          </Stack>
+        </Paper>
 
         <FormCard
           eyebrow="User directory"

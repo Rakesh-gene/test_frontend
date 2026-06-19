@@ -157,8 +157,17 @@ function normalizeUsersPage(body, fallbackPage, fallbackPageSize) {
   }
 }
 
-export async function getUsers({ page, pageSize }) {
-  const response = await fetch(buildApiUrl(`/api/user?page=${page}&pageSize=${pageSize}`), {
+export async function getUsers({ page, pageSize, search = '' }) {
+  const searchParams = new URLSearchParams({
+    page: String(page),
+    pageSize: String(pageSize),
+  })
+
+  if (search.trim()) {
+    searchParams.set('search', search.trim())
+  }
+
+  const response = await fetch(buildApiUrl(`/api/user?${searchParams.toString()}`), {
     headers: {
       Accept: 'application/json',
     },
