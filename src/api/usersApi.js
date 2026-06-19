@@ -157,8 +157,18 @@ function normalizeUsersPage(body, fallbackPage, fallbackPageSize) {
   }
 }
 
-export async function getUsers({ page, pageSize }) {
-  const response = await fetch(buildApiUrl(`/api/user?page=${page}&pageSize=${pageSize}`), {
+export async function getUsers({ page, pageSize, search = '' }) {
+  const searchTerm = search.trim()
+  const params = new URLSearchParams({
+    page: String(page),
+    pageSize: String(pageSize),
+  })
+
+  if (searchTerm) {
+    params.set('search', searchTerm)
+  }
+
+  const response = await fetch(buildApiUrl(`/api/user?${params.toString()}`), {
     headers: {
       Accept: 'application/json',
     },
@@ -179,13 +189,18 @@ export async function getUsers({ page, pageSize }) {
 }
 
 export async function updateUser(userId, payload) {
+  const requestBody = {
+    firstName: payload?.firstName ?? '',
+    lastName: payload?.lastName ?? '',
+  }
+
   const response = await fetch(buildApiUrl(`/api/user/${userId}`), {
     method: 'PUT',
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(requestBody),
   })
 
   const body = await readResponseBody(response)
