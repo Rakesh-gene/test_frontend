@@ -144,21 +144,46 @@ function normalizeUsersPage(body, fallbackPage, fallbackPageSize) {
     (Array.isArray(body.data) && body.data) ||
     (Array.isArray(body.users) && body.users) ||
     (Array.isArray(body.results) && body.results) ||
+    (Array.isArray(body.pagination?.items) && body.pagination.items) ||
     []
 
   const totalCount =
-    Number(body.totalCount ?? body.total ?? body.count ?? body.totalItems ?? items.length) || 0
+    Number(
+      body.totalCount ??
+        body.total ??
+        body.count ??
+        body.totalItems ??
+        body.pagination?.totalCount ??
+        body.pagination?.total ??
+        items.length,
+    ) || 0
+
+  const page = Number(body.page ?? body.pageNumber ?? body.pagination?.page ?? fallbackPage) || fallbackPage
+  const pageSize =
+    Number(body.pageSize ?? body.pageSizeValue ?? body.pagination?.pageSize ?? fallbackPageSize) ||
+    fallbackPageSize
 
   return {
     items,
     totalCount,
-    page: Number(body.page ?? body.pageNumber ?? fallbackPage) || fallbackPage,
-    pageSize: Number(body.pageSize ?? body.pageSizeValue ?? fallbackPageSize) || fallbackPageSize,
+    page,
+    pageSize,
   }
 }
 
-export async function getUsers({ page, pageSize }) {
-  const response = await fetch(buildApiUrl(`/api/user?page=${page}&pageSize=${pageSize}`), {
+export async function getUsers({ page, pageSize, search = '' }) {
+  const params = new URLSearchParams({
+    page: String(page),
+    pageSize: String(pageSize),
+  })
+  const normalizedSearch = search.trim()
+
+  if (normalizedSearch) {
+    params.set('search', normalizedSearch)
+    params.set('searchTerm', normalizedSearch)
+  }
+
+  const response = await fetch(buildApiUrl(`/api/user?${params.toString()}`), {
     headers: {
       Accept: 'application/json',
     },
