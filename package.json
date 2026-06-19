@@ -13,8 +13,10 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mui/material": "^7.3.4",
+    "@mui/x-data-grid": "^9.6.0",
     "react": "^19.2.6",
-    "react-dom": "^19.2.6"
+    "react-dom": "^19.2.6",
+    "react-router-dom": "^6.30.4"
   },
   "devDependencies": {
     "@eslint/js": "^8.57.1",

@@ -10,6 +10,7 @@ function PrimaryActionButton({
   type = 'submit',
   fullWidth = true,
   sx,
+  ...buttonProps
 }) {
   return (
     <Button
@@ -20,6 +21,7 @@ function PrimaryActionButton({
       fullWidth={fullWidth}
       disabled={disabled || loading}
       aria-busy={loading ? 'true' : undefined}
+      {...buttonProps}
       sx={[
         {
           minHeight: 52,
