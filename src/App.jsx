@@ -1,7 +1,15 @@
+import { Navigate, Route, Routes } from 'react-router-dom'
 import RegistrationPage from './features/registration/RegistrationPage.jsx'
+import UserManagementPage from './features/users/UserManagementPage.jsx'
 
 function App() {
-  return <RegistrationPage />
+  return (
+    <Routes>
+      <Route path="/" element={<RegistrationPage />} />
+      <Route path="/users" element={<UserManagementPage />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  )
 }
 
 export default App
