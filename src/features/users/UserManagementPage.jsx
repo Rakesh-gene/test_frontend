@@ -8,6 +8,7 @@ import {
   Container,
   Paper,
   Stack,
+  TextField,
   Typography,
 } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
@@ -64,6 +65,7 @@ function UserManagementPage() {
   const [rowCount, setRowCount] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
   const [loadError, setLoadError] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
   const [selectedUser, setSelectedUser] = useState(null)
   const [editOpen, setEditOpen] = useState(false)
   const [refreshToken, setRefreshToken] = useState(0)
@@ -73,8 +75,14 @@ function UserManagementPage() {
     const start = rowCount === 0 ? 0 : paginationModel.page * paginationModel.pageSize + 1
     const end = Math.min((paginationModel.page + 1) * paginationModel.pageSize, rowCount)
 
-    return rowCount === 0 ? 'No users loaded yet' : `Showing ${start}-${end} of ${rowCount}`
-  }, [paginationModel.page, paginationModel.pageSize, rowCount])
+    if (rowCount === 0) {
+      return searchQuery.trim()
+        ? `No users match "${searchQuery.trim()}"`
+        : 'No users loaded yet'
+    }
+
+    return `Showing ${start}-${end} of ${rowCount}`
+  }, [paginationModel.page, paginationModel.pageSize, rowCount, searchQuery])
 
   useEffect(() => {
     let active = true
@@ -87,6 +95,7 @@ function UserManagementPage() {
         const result = await getUsers({
           page: paginationModel.page + 1,
           pageSize: paginationModel.pageSize,
+          search: searchQuery,
         })
 
         if (!active) {
@@ -120,10 +129,19 @@ function UserManagementPage() {
     return () => {
       active = false
     }
-  }, [paginationModel.page, paginationModel.pageSize, refreshToken])
+  }, [paginationModel.page, paginationModel.pageSize, refreshToken, searchQuery])
 
   const handleRetry = () => {
     setRefreshToken((current) => current + 1)
+  }
+
+  const handleSearchChange = (event) => {
+    const nextSearch = event.target.value
+
+    setSearchQuery(nextSearch)
+    setPaginationModel((current) =>
+      current.page === 0 ? current : { ...current, page: 0 },
+    )
   }
 
   const handleRowClick = (params) => {
@@ -221,6 +239,44 @@ function UserManagementPage() {
             </Button>
           </Stack>
         </Stack>
+
+        <Paper
+          elevation={0}
+          sx={{
+            p: 2,
+            borderRadius: 3,
+            border: '1px solid rgba(15, 76, 92, 0.12)',
+            bgcolor: 'rgba(255, 255, 255, 0.78)',
+            backdropFilter: 'blur(12px)',
+          }}
+        >
+          <Stack
+            direction={{ xs: 'column', md: 'row' }}
+            spacing={2}
+            alignItems={{ xs: 'stretch', md: 'center' }}
+            justifyContent="space-between"
+          >
+            <Stack spacing={0.5}>
+              <Typography variant="subtitle1" fontWeight={700}>
+                Search users
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Matches first name, last name, or email address.
+              </Typography>
+            </Stack>
+
+            <TextField
+              label="Search"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              placeholder="Search by name or email"
+              size="medium"
+              fullWidth
+              sx={{ maxWidth: { md: 420 } }}
+              inputProps={{ 'data-testid': 'user-search-input' }}
+            />
+          </Stack>
+        </Paper>
 
         {banner ? (
           <FormAlert
