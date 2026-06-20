@@ -11,13 +11,10 @@ import {
 } from '@mui/material'
 import { FormTextField } from '../../components/common/index.js'
 
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
 function createFormValues(user) {
   return {
     firstName: user?.firstName ?? user?.first_name ?? '',
     lastName: user?.lastName ?? user?.last_name ?? '',
-    email: user?.email ?? user?.emailAddress ?? '',
   }
 }
 
@@ -25,7 +22,6 @@ function validateUser(values) {
   const errors = {}
   const firstName = values.firstName.trim()
   const lastName = values.lastName.trim()
-  const email = values.email.trim()
 
   if (!firstName) {
     errors.firstName = 'First name is required.'
@@ -39,12 +35,6 @@ function validateUser(values) {
     errors.lastName = 'Last name must be at least 2 characters.'
   }
 
-  if (!email) {
-    errors.email = 'Email address is required.'
-  } else if (!emailPattern.test(email)) {
-    errors.email = 'Enter a valid email address.'
-  }
-
   return errors
 }
 
@@ -53,12 +43,10 @@ function UserEditDialog({ user, open, onClose, onSave }) {
   const [touched, setTouched] = useState({
     firstName: false,
     lastName: false,
-    email: false,
   })
   const [serverFieldErrors, setServerFieldErrors] = useState({
     firstName: '',
     lastName: '',
-    email: '',
   })
   const [dialogError, setDialogError] = useState('')
   const [isSaving, setIsSaving] = useState(false)
@@ -69,12 +57,10 @@ function UserEditDialog({ user, open, onClose, onSave }) {
       setTouched({
         firstName: false,
         lastName: false,
-        email: false,
       })
       setServerFieldErrors({
         firstName: '',
         lastName: '',
-        email: '',
       })
       setDialogError('')
       setIsSaving(false)
@@ -85,11 +71,8 @@ function UserEditDialog({ user, open, onClose, onSave }) {
   const visibleErrors = {
     firstName: serverFieldErrors.firstName || (touched.firstName ? localErrors.firstName ?? '' : ''),
     lastName: serverFieldErrors.lastName || (touched.lastName ? localErrors.lastName ?? '' : ''),
-    email: serverFieldErrors.email || (touched.email ? localErrors.email ?? '' : ''),
   }
-  const hasVisibleErrors = Boolean(
-    visibleErrors.firstName || visibleErrors.lastName || visibleErrors.email,
-  )
+  const hasVisibleErrors = Boolean(visibleErrors.firstName || visibleErrors.lastName)
 
   const handleChange = (event) => {
     const { name, value } = event.target
@@ -130,7 +113,6 @@ function UserEditDialog({ user, open, onClose, onSave }) {
     const nextTouched = {
       firstName: true,
       lastName: true,
-      email: true,
     }
 
     setTouched(nextTouched)
@@ -144,14 +126,12 @@ function UserEditDialog({ user, open, onClose, onSave }) {
     setServerFieldErrors({
       firstName: '',
       lastName: '',
-      email: '',
     })
 
     try {
       await onSave({
         firstName: values.firstName.trim(),
         lastName: values.lastName.trim(),
-        email: values.email.trim(),
       })
     } catch (error) {
       const apiError = error && typeof error === 'object' ? error : null
@@ -161,7 +141,6 @@ function UserEditDialog({ user, open, onClose, onSave }) {
       setServerFieldErrors({
         firstName: nextFieldErrors.firstName ?? '',
         lastName: nextFieldErrors.lastName ?? '',
-        email: nextFieldErrors.email ?? '',
       })
       setDialogError(apiError?.detail || apiError?.title || 'Unable to save the user right now.')
       setIsSaving(false)
@@ -194,7 +173,8 @@ function UserEditDialog({ user, open, onClose, onSave }) {
       <DialogContent sx={{ pt: 1 }}>
         <Stack spacing={2.25} sx={{ mt: 0.5 }}>
           <Typography variant="body2" color="text.secondary">
-            Change the user&apos;s name or email address. Passwords are not edited from this screen.
+            Change the user&apos;s profile name details. Passwords and email addresses are not
+            edited from this screen.
           </Typography>
 
           {dialogError ? <Alert severity="error">{dialogError}</Alert> : null}
@@ -225,20 +205,6 @@ function UserEditDialog({ user, open, onClose, onSave }) {
             autoComplete="family-name"
             disabled={isSaving}
             inputProps={{ 'data-testid': 'user-edit-last-name' }}
-          />
-
-          <FormTextField
-            label="Email address"
-            name="email"
-            value={values.email}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            helperText={visibleErrors.email}
-            error={Boolean(visibleErrors.email)}
-            required
-            autoComplete="email"
-            disabled={isSaving}
-            inputProps={{ 'data-testid': 'user-edit-email' }}
           />
 
           {hasVisibleErrors ? (
