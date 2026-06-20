@@ -12,7 +12,7 @@ import {
 } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import { getUsers, updateUser } from '../../api/usersApi.js'
-import { FormCard, FormAlert } from '../../components/common/index.js'
+import { FormAlert, FormCard, FormTextField } from '../../components/common/index.js'
 import UserEditDialog from './UserEditDialog.jsx'
 
 const initialPaginationModel = {
@@ -64,17 +64,45 @@ function UserManagementPage() {
   const [rowCount, setRowCount] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
   const [loadError, setLoadError] = useState('')
+  const [searchInput, setSearchInput] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
   const [selectedUser, setSelectedUser] = useState(null)
   const [editOpen, setEditOpen] = useState(false)
   const [refreshToken, setRefreshToken] = useState(0)
   const [banner, setBanner] = useState(null)
 
   const currentPageLabel = useMemo(() => {
-    const start = rowCount === 0 ? 0 : paginationModel.page * paginationModel.pageSize + 1
+    if (rowCount === 0) {
+      return searchQuery ? `No users match "${searchQuery}"` : 'No users loaded yet'
+    }
+
+    const start = paginationModel.page * paginationModel.pageSize + 1
     const end = Math.min((paginationModel.page + 1) * paginationModel.pageSize, rowCount)
 
-    return rowCount === 0 ? 'No users loaded yet' : `Showing ${start}-${end} of ${rowCount}`
-  }, [paginationModel.page, paginationModel.pageSize, rowCount])
+    return searchQuery
+      ? `Showing ${start}-${end} of ${rowCount} matching "${searchQuery}"`
+      : `Showing ${start}-${end} of ${rowCount}`
+  }, [paginationModel.page, paginationModel.pageSize, rowCount, searchQuery])
+
+  useEffect(() => {
+    const normalizedSearch = searchInput.trim()
+    const delay = normalizedSearch ? 300 : 0
+
+    const timeout = window.setTimeout(() => {
+      if (normalizedSearch === searchQuery) {
+        return
+      }
+
+      setSearchQuery(normalizedSearch)
+      setPaginationModel((current) =>
+        current.page === 0 ? current : { ...current, page: 0 },
+      )
+    }, delay)
+
+    return () => {
+      window.clearTimeout(timeout)
+    }
+  }, [searchInput, searchQuery])
 
   useEffect(() => {
     let active = true
@@ -87,6 +115,7 @@ function UserManagementPage() {
         const result = await getUsers({
           page: paginationModel.page + 1,
           pageSize: paginationModel.pageSize,
+          search: searchQuery,
         })
 
         if (!active) {
@@ -120,7 +149,7 @@ function UserManagementPage() {
     return () => {
       active = false
     }
-  }, [paginationModel.page, paginationModel.pageSize, refreshToken])
+  }, [paginationModel.page, paginationModel.pageSize, refreshToken, searchQuery])
 
   const handleRetry = () => {
     setRefreshToken((current) => current + 1)
@@ -245,6 +274,46 @@ function UserManagementPage() {
           </Alert>
         ) : null}
 
+        <Paper
+          elevation={0}
+          sx={{
+            borderRadius: 3,
+            border: '1px solid rgba(15, 76, 92, 0.12)',
+            p: { xs: 2, md: 2.5 },
+          }}
+        >
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={2}
+            alignItems={{ xs: 'stretch', sm: 'flex-end' }}
+          >
+            <FormTextField
+              label="Search users"
+              name="userSearch"
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
+              placeholder="Search by name or email"
+              helperText="Searches first name, last name, and email address on the server."
+              sx={{ flex: 1 }}
+              inputProps={{ 'data-testid': 'user-search-input' }}
+            />
+            <Button
+              onClick={() => {
+                setSearchInput('')
+                setSearchQuery('')
+                setPaginationModel((current) =>
+                  current.page === 0 ? current : { ...current, page: 0 },
+                )
+              }}
+              disabled={!searchInput && !searchQuery}
+              variant="text"
+              sx={{ alignSelf: { xs: 'flex-start', sm: 'center' } }}
+            >
+              Clear search
+            </Button>
+          </Stack>
+        </Paper>
+
         <FormCard
           eyebrow="User directory"
           title="All registered users"
@@ -283,6 +352,7 @@ function UserManagementPage() {
                 disableRowSelectionOnClick
                 onRowClick={handleRowClick}
                 getRowId={(row) => row.id ?? row.userId}
+                aria-label="User list"
                 sx={{
                   border: 0,
                   '& .MuiDataGrid-columnHeaders': {
