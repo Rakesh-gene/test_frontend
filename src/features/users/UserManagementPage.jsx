@@ -8,6 +8,7 @@ import {
   Container,
   Paper,
   Stack,
+  TextField,
   Typography,
 } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
@@ -68,6 +69,7 @@ function UserManagementPage() {
   const [editOpen, setEditOpen] = useState(false)
   const [refreshToken, setRefreshToken] = useState(0)
   const [banner, setBanner] = useState(null)
+  const [search, setSearch] = useState('')
 
   const currentPageLabel = useMemo(() => {
     const start = rowCount === 0 ? 0 : paginationModel.page * paginationModel.pageSize + 1
@@ -87,6 +89,7 @@ function UserManagementPage() {
         const result = await getUsers({
           page: paginationModel.page + 1,
           pageSize: paginationModel.pageSize,
+          search,
         })
 
         if (!active) {
@@ -120,7 +123,21 @@ function UserManagementPage() {
     return () => {
       active = false
     }
-  }, [paginationModel.page, paginationModel.pageSize, refreshToken])
+  }, [paginationModel.page, paginationModel.pageSize, refreshToken, search])
+
+  const handleSearchChange = (event) => {
+    const nextSearch = event.target.value
+
+    setSearch(nextSearch)
+    setPaginationModel((current) =>
+      current.page === 0
+        ? current
+        : {
+            ...current,
+            page: 0,
+          },
+    )
+  }
 
   const handleRetry = () => {
     setRefreshToken((current) => current + 1)
@@ -251,6 +268,17 @@ function UserManagementPage() {
           description={currentPageLabel}
           sx={{ overflow: 'hidden' }}
         >
+          <TextField
+            label="Search users"
+            value={search}
+            onChange={handleSearchChange}
+            placeholder="Search by name or email"
+            fullWidth
+            autoComplete="off"
+            sx={{ mb: 2.5 }}
+            inputProps={{ 'data-testid': 'users-search' }}
+          />
+
           <Paper
             elevation={0}
             sx={{
