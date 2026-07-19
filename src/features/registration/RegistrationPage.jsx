@@ -1,7 +1,9 @@
 import { useId, useMemo, useState } from 'react'
+import { Link as RouterLink } from 'react-router-dom'
 import {
   Avatar,
   Box,
+  Button,
   Chip,
   Container,
   Grid,
@@ -358,7 +360,12 @@ function RegistrationPage() {
             </Box>
           </Stack>
 
-          <Chip label={chipLabel} color={chipColor} variant="outlined" sx={{ fontWeight: 700 }} />
+          <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap">
+            <Button component={RouterLink} to="/login" variant="outlined">
+              Sign in
+            </Button>
+            <Chip label={chipLabel} color={chipColor} variant="outlined" sx={{ fontWeight: 700 }} />
+          </Stack>
         </Stack>
 
         <Grid container spacing={{ xs: 3, md: 4 }} alignItems="stretch">
