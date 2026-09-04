@@ -371,7 +371,16 @@ function RegistrationPage() {
                   variant="filled"
                   sx={{ alignSelf: 'flex-start', fontWeight: 700 }}
                 />
-                <Typography variant="h2" component="h1">
+                <Typography
+                  variant="h2"
+                  component="h1"
+                  sx={{
+                    fontSize: { xs: '2.25rem', sm: '2.75rem', md: '3.75rem' },
+                    lineHeight: 1.05,
+                    maxWidth: 560,
+                    wordBreak: 'break-word',
+                  }}
+                >
                   {headerCopy}
                 </Typography>
                 <Typography
