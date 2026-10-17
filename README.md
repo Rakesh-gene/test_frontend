@@ -2,6 +2,52 @@
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
+## Install
+
+Install Node.js and npm, then open a terminal in the project root (the directory containing `package.json`) and install the dependencies:
+
+```sh
+npm ci
+```
+
+## Run locally
+
+Start the development server:
+
+```sh
+npm run dev
+```
+
+Open the URL printed in the terminal (usually `http://localhost:5173`). The page reloads automatically when you edit the source files. Press `Ctrl+C` in the terminal to stop the server.
+
+The frontend sends `/api` requests to the backend at `http://127.0.0.1:5249` through the development proxy. Start the backend separately to use registration and user management. To use a different backend address, create a `.env.local` file in the project root:
+
+```dotenv
+VITE_API_PROXY_TARGET=http://127.0.0.1:5249
+```
+
+Restart the development server after changing environment variables.
+
+## Build
+
+Create a production build:
+
+```sh
+npm run build
+```
+
+The generated files are written to `dist/`.
+
+## Preview the build
+
+After building, serve the production output locally:
+
+```sh
+npm run preview
+```
+
+Open the URL printed in the terminal (usually `http://localhost:4173`). Preview is for checking the build locally. The development API proxy does not apply to preview or production hosting; configure your host to forward `/api` to the backend, or set `VITE_API_BASE_URL` to the backend URL in `.env.local` before building. A backend on a different origin must allow requests from the frontend through CORS.
+
 Currently, two official plugins are available:
 
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
